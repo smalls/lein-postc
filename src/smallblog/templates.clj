@@ -1,6 +1,5 @@
 (ns smallblog.templates
-    (:use [ring.util.codec :only (url-encode)]
-          [clojure.string :only (join)]
+    (:use [clojure.string :only (join)]
           [smallblog.config])
     (:require [net.cgrand.enlive-html :as html]
               [clj-time.core :as clj-time]
@@ -8,30 +7,6 @@
               [clj-time.coerce :as clj-time-coerce])
     (:import [org.mozilla.javascript Context ScriptableObject]))
 
-(defn sslurl
-    "create an ssl url; url must start with a /"
-    ([url] (sslurl *ssl-server* *ssl-port* url))
-    ([server port url] (str "https://" server
-                            (if (not (= "443" (str port)))
-                                (str ":" port))
-                            url)))
-
-; when changing these, also check snippets.html and core/security-config
-(def *login-url* "/login")
-(def *login-fqurl* (sslurl *login-url*))
-
-(def *signup-url* "/signup")
-(def *signup-fqurl* (sslurl *signup-url*))
-
-(def *account-url* "/account")
-(def *account-fqurl* (sslurl *account-url*))
-
-(def *login-redirect-url* "/login-redirect")
-(def *login-redirect-fqurl* (sslurl *login-redirect-url*))
-(def *logout-url* "/logout")
-(def *permission-denied-uri* "/permission-denied")
-
-(def *image-url* "/images")
 (def *image-full* "full")
 (def *image-blog* "blog")
 (def *image-thumb* "thumb")
@@ -55,44 +30,6 @@
                 (Context/toString result))
             (finally (Context/exit)))))
 
-(html/defsnippet valid-user-menu
-                 "smallblog/templates/snippets.html"
-                 [:#valid-user-menu]
-                 [ctx]
-                 [:.accountlink] (html/set-attr :href *account-fqurl*))
-
-(html/defsnippet no-user-menu
-                 "smallblog/templates/snippets.html"
-                 [:#no-user-menu]
-                 [ctx]
-                 [:.signuplink] (html/set-attr :href *signup-fqurl*)
-                 [:.loginlink] (html/set-attr :href
-                                   (if (nil? (:url ctx))
-                                       *login-fqurl*
-                                       (str *login-fqurl* "?url=" (url-encode (:url ctx))))))
-
-(defn user-menu [ctx]
-    (if (nil? (:user ctx))
-        (no-user-menu ctx)
-        (valid-user-menu ctx)))
-
-(html/defsnippet new-post-button-snippet
-                 "smallblog/templates/snippets.html"
-                 [:#nested-newpost]
-                 [ctx])
-
-(defn new-post-button [ctx]
-    (if (:is-blog-owner ctx)
-        (html/content (new-post-button-snippet ctx))
-        nil))
-
-(defn -permalink-url [ctx item]
-    (let [cdate (clj-time-coerce/from-date (:created_date item))
-          timestamp (:created_date item)
-          month (+ 1 (.getMonth timestamp))
-          year (.getYear timestamp)]
-        (str (:url ctx) year "/" month "/" (:title item))))
-
 (defn -main-div-post [ctx]
     (html/clone-for [item (:posts ctx)]
                     [:.posttitle] (html/content (:title item))
@@ -101,8 +38,8 @@
                                          date-output-format
                                          (clj-time-coerce/from-date (:created_date item))))
                     [:.postbody] (html/html-content (:converted_content item))
-                    [:.permalink] (html/set-attr :href (-permalink-url ctx item))
-                    [:.permalink] (html/content (-permalink-url ctx item))))
+                    [:.permalink] (html/set-attr :href (:XXX-permalink-url ctx))
+                    [:.permalink] (html/content (:XXX-permalink-url ctx))))
 
 (defn -is-first-page? [page pagination total-posts]
     (= 0 page))
@@ -120,105 +57,11 @@
                   [ctx]
                   [:p#blogname] (html/content (:blogname ctx))
                   [:head :title] (html/content (:blogname ctx))
-                  [:#menu] (html/content (user-menu ctx))
-                  [:#newpost] (new-post-button ctx)
                   [:div.post] (-main-div-post ctx)
-                  [:a#pager-newer] (if (-is-first-page?
-                                           (:page ctx) (:pagination ctx) (:total-posts ctx))
+                  [:a#pager-newer] (if (:XXX-is-first-page ctx)
                                        nil)
-                  [:a#pager-older] (if (-is-last-page?
-                                           (:page ctx) (:pagination ctx) (:total-posts ctx))
+                  [:a#pager-older] (if (:XXX-is-last-page ctx)
                                        nil)
                   [:span#pager-text] (html/content (-pager-text
                                                        (:page ctx) (:pagination ctx)
                                                        (:total-posts ctx))))
-
-(html/deftemplate newpost "smallblog/templates/newpost.html"
-                  [ctx]
-                  [:p#blogname] (html/content (:blogname ctx))
-                  [:head :title] (html/content (:blogname ctx))
-                  [[:meta (html/attr= :name "blog")]] (html/set-attr
-                                                          :content (str (:blogid ctx)))
-                  [:#menu] (html/content (user-menu ctx)))
-
-(html/deftemplate login "smallblog/templates/login.html"
-                  [ctx]
-                  [:.signuplink] (html/set-attr :href *signup-fqurl*)
-                  [:#login_form] (html/set-attr :action
-                                     (if (nil? (:url ctx))
-                                         *login-redirect-fqurl*
-                                         (str *login-redirect-fqurl* "?url=" (url-encode(:url ctx))))))
-
-(html/deftemplate contact "smallblog/templates/contact.html" [ctx]
-                  [:#menu] (html/content (user-menu ctx)))
-
-(html/deftemplate about "smallblog/templates/about.html" [ctx]
-                  [:#menu] (html/content (user-menu ctx)))
-
-
-(html/defsnippet signup-restricted-snippet
-                 "smallblog/templates/snippets.html"
-                 [:#signup-restricted]
-                 [])
-
-(html/deftemplate signup-restricted "smallblog/templates/contact.html" []
-                  [:#contact-admin] (html/before (signup-restricted-snippet)))
-
-
-(defn -domains-for-blog [blogid domains]
-    (filter #(= blogid (:blogid %)) domains))
-
-(defn -domains-with-blognames [blogs domains]
-    "return a map of domainid -> blogtitle"
-    (let [blogbyid (reduce (fn [m blog] (assoc m (:id blog) (:title blog)))
-                       {} blogs)]
-        (reduce (fn [m domain]
-                    (assoc m (:id domain) (get blogbyid (:blogid domain))))
-            {} domains)))
-
-(html/deftemplate account "smallblog/templates/account.html"
-                  [ctx]
-                  [:#email] (html/set-attr :value (:name (:user ctx)))
-                  [:#menu] (html/content (user-menu ctx))
-                  [:#imageform] (html/set-attr :action
-                                    (if (nil? (:url ctx))
-                                        *image-url*
-                                        (str *image-url* "?url=" (url-encode (:url ctx)))))
-                  [:tr.blog] (html/clone-for [item (:blogs ctx)]
-                                 [:.blogtitle] (html/set-attr :href
-                                                   (str "/blog/" (:id item) "/post/"))
-                                 [:.blogtitle] (html/content (:title item))
-                                 [:.blogdomains] (html/content (join "\n"
-                                                                   (map #(:domain %)
-                                                                       (-domains-for-blog (:id item)
-                                                                           (:domains ctx))))))
-                  [:tr.domain-entry] (let [domain-to-blog
-                                           (-domains-with-blognames (:blogs ctx) (:domains ctx))]
-                                         (html/clone-for [item (:domains ctx)]
-                                             [:.domain-name] (html/content (:domain item))
-                                             [:.domain-blog-title] (html/content
-                                                                       (get domain-to-blog (:id item)))
-                                             [:select.domain-change] (html/set-attr :name
-                                                                         (str "change-domain-" (:id item)))
-                                             [:option.domain-change] (html/clone-for [bitem (:blogs ctx)]
-                                                                         [:*] (html/content (:title bitem))
-                                                                         [:*] (html/set-attr :value (:id bitem))
-                                                                         [(html/attr= :value (:blogid item))]
-                                                                         (html/set-attr :selected
-                                                                             "selected")))))
-
-(html/deftemplate images "smallblog/templates/images.html"
-                  [ctx]
-                  [:#menu] (html/content (user-menu ctx))
-                  [:div.image] (html/clone-for [item (:images ctx)]
-                                   [:.imglink] (html/set-attr :href
-                                                   (str *image-url* "/" (:id item) "/" *image-full*))
-                                   [:.imgdisp] (html/set-attr :src
-                                                   (str *image-url* "/" (:id item) "/" *image-blog*)))
-                  [:option.blog] (html/clone-for [item (:blogs ctx)]
-                                                 [:.blog] (html/set-attr :value (:id item))
-                                                 [:.blog] (html/content (:title item))))
-
-(html/deftemplate signup "smallblog/templates/signup.html"
-                  [ctx]
-                  [:#menu] (html/content (user-menu ctx)))
