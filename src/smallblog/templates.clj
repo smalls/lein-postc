@@ -7,9 +7,9 @@
               [clj-time.coerce :as clj-time-coerce])
     (:import [org.mozilla.javascript Context ScriptableObject]))
 
-(def *image-full* "full")
-(def *image-blog* "blog")
-(def *image-thumb* "thumb")
+(def image-full "full")
+(def image-blog "blog")
+(def image-thumb "thumb")
 
 
 (def date-output-format (clj-time-format/formatter "dd MMM yyyy"))

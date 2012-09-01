@@ -1,6 +1,5 @@
 (ns smallblog.test.data
     (:use [smallblog.config]
-          [smallblog.templates :only (*image-blog*, *image-full*, *image-thumb*)]
           [clojure.test]
           [clj-time.core :only (now date-time from-time-zone time-zone-for-offset after?)])
     (:require [smallblog.data :as data])

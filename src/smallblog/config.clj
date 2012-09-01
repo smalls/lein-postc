@@ -11,6 +11,6 @@
 
 ; AWS configuration.  Read from AWS_ACCESS_KEY, AWS_SECRET_KEY, and
 ; IMAGE_BUCKET
-(def *aws-access-key* (-get-from-env "AWS_ACCESS_KEY"))
-(def *aws-secret-key* (-get-from-env "AWS_SECRET_KEY"))
-(def *image-bucket* (-get-from-env "IMAGE_BUCKET"))
+(def aws-access-key (-get-from-env "AWS_ACCESS_KEY"))
+(def aws-secret-key (-get-from-env "AWS_SECRET_KEY"))
+(def image-bucket (-get-from-env "IMAGE_BUCKET"))

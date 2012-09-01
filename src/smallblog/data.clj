@@ -1,8 +1,7 @@
 (ns smallblog.data
-    (:use [smallblog.templates :only (markdownify *image-full* *image-blog* *image-thumb*)]
+    (:use [smallblog.templates :only (markdownify image-full image-blog image-thumb)]
           [smallblog.config]
-          [clojure.contrib.duck-streams :only (to-byte-array)]
-          [clojure.contrib.string :only (split)])
+          [clojure.string :only (split)])
     (:require [clojure.string :as str]
               [clj-time.format :as clj-time-format])
     (:import [java.util Calendar]
@@ -31,7 +30,7 @@
           desired-content-type (if (= "image/gif" full-image-content-type)
                                    "image/png"
                                    full-image-content-type)
-          desired-format (last (split #"\/" desired-content-type))]
+          desired-format (last (split desired-content-type #"\/"))]
         (cond
             (and
                 (some #(= desired-content-type %) mime-types)
@@ -71,10 +70,10 @@
 (defn -do-image-upload
     "upload the image to s3, and return the id of the new s3reference row"
     [imgmap filename imageid res]
-    (let [credentials (AWSCredentials. *aws-access-key* *aws-secret-key*)
+    (let [credentials (AWSCredentials. aws-access-key aws-secret-key)
           image-md5 (ServiceUtils/computeMD5Hash (:image-bytes imgmap))
           s3Service (RestS3Service. credentials)
-          s3Bucket (.getBucket s3Service *image-bucket*)
+          s3Bucket (.getBucket s3Service image-bucket)
           remote-filename (-image-name imageid filename res (:content-type imgmap))
           s3Object (S3Object. remote-filename (:image-bytes imgmap))]
         (.setContentType s3Object (:content-type imgmap))
@@ -83,8 +82,8 @@
         (.putObject s3Service s3Bucket s3Object)))
 
 (defn -get-image-bytes-from-s3 [filename]
-    (let [credentials (AWSCredentials. *aws-access-key* *aws-secret-key*)
+    (let [credentials (AWSCredentials. aws-access-key aws-secret-key)
           s3Service (RestS3Service. credentials)
-          s3Bucket (.getBucket s3Service *image-bucket*)
+          s3Bucket (.getBucket s3Service image-bucket)
           s3Object (.getObject s3Service s3Bucket filename)]
         (.getDataInputStream s3Object)))
