@@ -1,9 +1,10 @@
 (ns smallblog.test.process
     (:use [smallblog.process]
-          [clojure.test]))
+          [clojure.test])
+    (:import [java.io File]))
 
-(deftest test-process-dir
+(deftest test-markdownify-dir
          "test processing a test directory"
-         (let [entries (process-dir (File. "test/smallblog/test/basic-sample"))]
+         (let [entries (-markdownify-dir (File. "test/smallblog/test/test-markdownify-dir"))]
              (is (= 1 (count entries)))
              (is (= "<p>just <em>something</em> else</p>" (first entries)))))
