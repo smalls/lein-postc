@@ -4,6 +4,7 @@ pom.xml
 *.swo
 /lib/
 /classes/
+/target/
 .lein-failures
 .lein-deps-sum
 env.sh

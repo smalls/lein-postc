@@ -1,5 +1,6 @@
 (ns smallblog.process
     (:use [smallblog.templates])
+    (:require [clojure.java.io :as clj-io])
     (:import [java.io File FileInputStream StringWriter]))
 
 (defn -read-file [file]
@@ -39,3 +40,14 @@
         (if (not (.isDirectory dir)) (throw (Exception. (str "not a directory:" dir))))
         (map -markdownify-file files)))
 
+(defn -write-direct-posts [out-dir entries]
+    "write a list of markdownified entries out to the specified out-dir"
+    (if (.exists out-dir) (throw (Exception. (str "output directory must not be present" out-dir))))
+    (.mkdir out-dir)
+    (loop [entries entries]
+        (let [entry (first entries)
+              out-file (clj-io/file out-dir (str (:date entry) "-" (:title entry) ".html"))]
+            (do
+                (clj-io/copy (:raw entry) out-file)
+                (if (not (empty? (rest entries)))
+                    (recur (rest entries)))))))
