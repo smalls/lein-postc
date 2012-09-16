@@ -3,8 +3,13 @@
           [clojure.test])
     (:import [java.io File]))
 
+(deftest test-get-date-from-filename
+         (is (= "2012-01-01" (-date-from-filename "2012-01-01-123-123")))
+         (is (= "123-123" (-title-from-filename "2012-01-01-123-123"))))
+
 (deftest test-markdownify-dir
          "test processing a test directory"
          (let [entries (-markdownify-dir (File. "test/smallblog/test/test-markdownify-dir"))]
              (is (= 1 (count entries)))
-             (is (= "<p>just <em>something</em> else</p>" (first entries)))))
+             (is (= "2012-01-01" (:date (first entries))))
+             (is (= "<p>just <em>something</em> else</p>" (:raw (first entries))))))
