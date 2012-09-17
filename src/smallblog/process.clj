@@ -3,7 +3,7 @@
               [smallblog.templates :as templates])
     (:import [java.io File FileInputStream StringWriter]))
 
-(defn -read-file [file]
+(defn- ^String -read-file [file]
     (if (not (.exists file)) (throw (Exception. (str "missing:" file))))
     (if (not (.isFile file)) (throw (Exception. (str "not a file:" file))))
     (with-open [sw (StringWriter.)]

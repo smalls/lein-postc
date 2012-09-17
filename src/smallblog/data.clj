@@ -12,13 +12,6 @@
              [org.jets3t.service.utils ServiceUtils]
              [org.jets3t.service.model S3Object]
              [org.jets3t.service.impl.rest.httpclient RestS3Service]))
-
-
-(defn count-posts []
-    (throw (Exception. "count-posts not yet done")))
-
-(defn get-posts [number offset]
-    (throw (Exception. "get-posts not yet done, but i may not need it")))
                     
 (defn get-content-type
     "get the image content type and format; map gif to png, otherwise make a

@@ -4,17 +4,6 @@
     (:require [smallblog.data :as data])
     (:import [java.io File FileNotFoundException]))
 
-(deftest test-post
-         "test basic creation of posts - including (make-post), (get-posts 1 0),
-         (get-post id), and (count-posts)"
-         []
-         (is (not "not yet done")))
-
-(deftest test-get-post-by-title-year-month
-         "test that we can get individual posts by their info"
-         []
-         (is (not "not yet done")))
-
 (deftest test-get-content-type []
          (is (= ["image/jpeg" "jpeg"] (data/get-content-type "image/jpeg")))
          (is (= ["image/png" "png"] (data/get-content-type "image/png")))
