@@ -4,15 +4,17 @@
     (:require [clojure.java.io :as clj-io])
     (:import [java.io StringWriter]))
 
-(deftest test-get-date-from-filename
+(deftest test-get-from-filename
          (is (= "2012-01-01" (-date-from-filename "2012-01-01-123-123")))
-         (is (= "123-123" (-title-from-filename "2012-01-01-123-123"))))
+         (is (= "123-123" (-title-from-filename "2012-01-01-123-123")))
+         (is (= "123-123" (-title-from-filename "2012-01-01-123-123.md"))))
 
 (deftest test-markdownify-dir
          "test processing a test directory"
          (let [entries (-markdownify-dir (clj-io/file "test/smallblog/test/test-markdownify-dir"))]
-             (is (= 1 (count entries)))
+             (is (= 3 (count entries)))
              (is (= "2012-01-01" (:date (first entries))))
+             (is (= "2011-12-12" (:date (second entries))))
              (is (= "<p>just <em>something</em> else</p>" (:fmt-text (first entries))))))
 
 (deftest test-write-posts

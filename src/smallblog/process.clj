@@ -10,7 +10,7 @@
         (clj-io/copy file sw)
         (.toString sw)))
 
-(def -filename-split-regex #"^(\d+-\d+-\d+)-(.+)$")
+(def -filename-split-regex #"^(\d+-\d+-\d+)-(.+?)(?:\.md)?$")
 
 (defn -date-from-filename [filename]
     (nth (re-find -filename-split-regex filename) 1))
@@ -21,7 +21,7 @@
     "format the entry - change titles-like-this to Titles Like This, markdownify text, etc"
     [date title text]
     {:date date
-     :permalink (str "/p/" date "-" title ".html")
+     :permalink (str "p/" date "-" title ".html")
      :raw-title title
      :fmt-title ""
      :raw-text text
@@ -40,7 +40,7 @@
     (let [files (.listFiles dir)]
         (if (not (.exists dir)) (throw (Exception. (str "missing:" dir))))
         (if (not (.isDirectory dir)) (throw (Exception. (str "not a directory:" dir))))
-        (map -markdownify-file files)))
+        (rseq (vec (sort-by :date (map -markdownify-file files))))))
 
 (defn- write-output
     "write the output from entry-text-seq (which is a sequence)"
@@ -55,7 +55,7 @@
 (defn- write-permalink-posts
     "write a list of markdownified entries out to the specified out-dir for permalinks"
     [out-dir entries blogname]
-    (let [out-dir (clj-io/file out-dir "posts")]
+    (let [out-dir (clj-io/file out-dir "p")]
         (.mkdir out-dir)
         (loop [entries entries]
             (let [entry (first entries)
