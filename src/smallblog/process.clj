@@ -17,8 +17,9 @@
 (defn -title-from-filename [filename]
     (nth (re-find -filename-split-regex filename) 2))
 
-(defn -format-entry [date title text]
+(defn -format-entry
     "format the entry - change titles-like-this to Titles Like This, markdownify text, etc"
+    [date title text]
     {:date date
      :permalink (str "/p/" date "-" title ".html")
      :raw-title title
@@ -26,21 +27,24 @@
      :raw-text text
      :fmt-text (templates/markdownify text)})
 
-(defn -markdownify-file [file]
+(defn -markdownify-file
     "reads file"
+    [file]
     (-format-entry (-date-from-filename (.getName file))
                    (-title-from-filename (.getName file))
                    (-read-file file)))
 
-(defn -markdownify-dir [dir]
-    "transform a sequence of markdown-formatted entries into formatted html"
+(defn -markdownify-dir
+    "transform a sequence of markdown-formatted entries into entries"
+    [dir]
     (let [files (.listFiles dir)]
         (if (not (.exists dir)) (throw (Exception. (str "missing:" dir))))
         (if (not (.isDirectory dir)) (throw (Exception. (str "not a directory:" dir))))
         (map -markdownify-file files)))
 
-(defn- write-output [out-file entry-text-seq]
+(defn- write-output
     "write the output from entry-text-seq (which is a sequence)"
+    [out-file entry-text-seq]
     (with-open [out-writer (clj-io/writer out-file)]
         (loop [out-writer out-writer
                entry-text-seq entry-text-seq]
@@ -48,8 +52,9 @@
             (if (not (empty? (rest entry-text-seq)))
                 (recur out-writer (rest entry-text-seq))))))
 
-(defn- write-permalink-posts [out-dir entries blogname]
+(defn- write-permalink-posts
     "write a list of markdownified entries out to the specified out-dir for permalinks"
+    [out-dir entries blogname]
     (let [out-dir (clj-io/file out-dir "posts")]
         (.mkdir out-dir)
         (loop [entries entries]
@@ -61,13 +66,20 @@
                     (if (not (empty? (rest entries)))
                         (recur (rest entries))))))))
 
-(defn- write-index-posts [out-dir entries blogname]
+(defn- write-index-posts
     "write the list of posts out to the index file (possibly with additional paginated index files)"
+    [out-dir entries blogname]
     (.mkdir out-dir)
     (let [out-file (clj-io/file out-dir "index.html")]
         (write-output out-file (templates/main blogname entries))))
 
-(defn write-posts [out-dir entries blogname]
+(defn -write-posts
     "write all posts out; see -write-index-posts and -write-permalink-posts"
+    [entries out-dir blogname]
     (write-index-posts out-dir entries blogname)
     (write-permalink-posts out-dir entries blogname))
+
+(defn process
+    "read post source files, process them, and write them to the output directory"
+    [in-dir out-dir blogname]
+    (-write-posts (-markdownify-dir in-dir) out-dir blogname))

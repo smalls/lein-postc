@@ -28,7 +28,7 @@
              (clj-io/delete-file expected-post-other :silently true)
              (clj-io/delete-file expected-index :silently true)
              (clj-io/delete-file out-dir :silently true)
-             (write-posts out-dir entries blogname)
+             (-write-posts entries out-dir blogname)
              (is (.exists expected-post))
              (is (.exists expected-post-other))
              (is (.exists expected-index))
