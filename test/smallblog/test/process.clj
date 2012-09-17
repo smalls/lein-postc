@@ -15,16 +15,35 @@
              (is (= "2012-01-01" (:date (first entries))))
              (is (= "<p>just <em>something</em> else</p>" (:fmt-text (first entries))))))
 
-(deftest test-write-permalink-posts
-         "test writing permalink posts"
-         (let [entries [(-format-entry "2012-02-03" "foo-bar-baz" "<p>something great</p>")]
-               out-dir (clj-io/file "test/smallblog/test/output/test-write-permalink-posts")
-               expected-post (clj-io/file "test/smallblog/test/output/test-write-permalink-posts/2012-02-03-foo-bar-baz.html")
+(deftest test-write-posts
+         "test writing posts"
+         (let [entries [(-format-entry "2012-02-03" "foo-bar-baz" "<p>something great</p>")
+                        (-format-entry "2012-02-04" "mediocre" "something pretty <i>mediocre</i>")]
+               out-dir (.getAbsoluteFile (clj-io/file "test/smallblog/test/output/test-write-posts"))
+               expected-index (clj-io/file "test/smallblog/test/output/test-write-posts/index.html")
+               expected-post (clj-io/file "test/smallblog/test/output/test-write-posts/posts/2012-02-03-foo-bar-baz.html")
+               expected-post-other (clj-io/file "test/smallblog/test/output/test-write-posts/posts/2012-02-04-mediocre.html")
                blogname "-_-NAME-_-"]
              (clj-io/delete-file expected-post :silently true)
+             (clj-io/delete-file expected-post-other :silently true)
+             (clj-io/delete-file expected-index :silently true)
              (clj-io/delete-file out-dir :silently true)
-             (-write-permalink-posts out-dir entries blogname)
+             (write-posts out-dir entries blogname)
              (is (.exists expected-post))
+             (is (.exists expected-post-other))
+             (is (.exists expected-index))
+
+             ; test main index.html
+             (with-open [sw (StringWriter.)]
+                 (clj-io/copy expected-index sw)
+                 (is (<= 0 (.indexOf (.toString sw) (:fmt-text (first entries))))
+                     (str (:fmt-text (first entries)) "should have been found, but wasn't in:\n" (.toString sw)))
+                 (is (<= 0 (.indexOf (.toString sw) (:fmt-text (last entries))))
+                     (str (:fmt-text (last entries)) "should have been found, but wasn't in:\n" (.toString sw)))
+                 (is (<= 0 (.indexOf (.toString sw) blogname))
+                     (str blogname "should have been found, but wasn't in:\n" (.toString sw))))
+
+             ; test permalink post
              (with-open [sw (StringWriter.)]
                  (clj-io/copy expected-post sw)
                  (is (<= 0 (.indexOf (.toString sw) (:fmt-text (first entries))))

@@ -54,14 +54,10 @@
     (str "page " (+ 1 page) " of " (+ 1 (-number-of-pages pagination total-posts))))
 
 (html/deftemplate main "smallblog/templates/main.html"
-                  [ctx]
-                  [:p#blogname] (html/content (:blogname ctx))
-                  [:head :title] (html/content (:blogname ctx))
-                  [:div.post] (-main-div-post ctx)
-                  [:a#pager-newer] (if (:XXX-is-first-page ctx)
-                                       nil)
-                  [:a#pager-older] (if (:XXX-is-last-page ctx)
-                                       nil)
-                  [:span#pager-text] (html/content (-pager-text
-                                                       (:page ctx) (:pagination ctx)
-                                                       (:total-posts ctx))))
+                  [blogname entries]
+                  [:p#blogname] (html/content blogname)
+                  [:head :title] (html/content blogname)
+                  [:div.post] (-main-div-post blogname entries)
+                  [:a#pager-newer] nil
+                  [:a#pager-older] nil 
+                  [:span#pager-text] nil)

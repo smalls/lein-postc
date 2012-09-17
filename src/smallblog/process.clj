@@ -1,24 +1,14 @@
 (ns smallblog.process
-    (:use [smallblog.templates])
-    (:require [clojure.java.io :as clj-io])
+    (:require [clojure.java.io :as clj-io]
+              [smallblog.templates :as templates])
     (:import [java.io File FileInputStream StringWriter]))
 
 (defn -read-file [file]
     (if (not (.exists file)) (throw (Exception. (str "missing:" file))))
     (if (not (.isFile file)) (throw (Exception. (str "not a file:" file))))
-    (let [sw (StringWriter.)
-          stream (FileInputStream. file)]
-        (try
-            ; XXX use a library for this
-            (loop [sw sw
-                   stream stream]
-                (let [b (.read stream)]
-                    (if (= -1 b)
-                        (.toString sw)
-                        (do
-                            (.write sw b)
-                            (recur sw stream)))))
-            (finally (.close stream)))))
+    (with-open [sw (StringWriter.)]
+        (clj-io/copy file sw)
+        (.toString sw)))
 
 (def -filename-split-regex #"^(\d+-\d+-\d+)-(.+)$")
 
@@ -34,7 +24,7 @@
      :raw-title title
      :fmt-title ""
      :raw-text text
-     :fmt-text (markdownify text)})
+     :fmt-text (templates/markdownify text)})
 
 (defn -markdownify-file [file]
     "reads file"
@@ -49,19 +39,35 @@
         (if (not (.isDirectory dir)) (throw (Exception. (str "not a directory:" dir))))
         (map -markdownify-file files)))
 
-(defn -write-permalink-posts [out-dir entries blogname]
+(defn- write-output [out-file entry-text-seq]
+    "write the output from entry-text-seq (which is a sequence)"
+    (with-open [out-writer (clj-io/writer out-file)]
+        (loop [out-writer out-writer
+               entry-text-seq entry-text-seq]
+            (clj-io/copy (first entry-text-seq) out-writer)
+            (if (not (empty? (rest entry-text-seq)))
+                (recur out-writer (rest entry-text-seq))))))
+
+(defn- write-permalink-posts [out-dir entries blogname]
     "write a list of markdownified entries out to the specified out-dir for permalinks"
+    (let [out-dir (clj-io/file out-dir "posts")]
+        (.mkdir out-dir)
+        (loop [entries entries]
+            (let [entry (first entries)
+                  entry-out (templates/permalink blogname entry)
+                  out-file (.getAbsoluteFile (clj-io/file out-dir (str (:date entry) "-" (:raw-title entry) ".html")))]
+                (do
+                    (write-output out-file entry-out)
+                    (if (not (empty? (rest entries)))
+                        (recur (rest entries))))))))
+
+(defn- write-index-posts [out-dir entries blogname]
+    "write the list of posts out to the index file (possibly with additional paginated index files)"
     (.mkdir out-dir)
-    (loop [entries entries]
-        (let [entry (first entries)
-              entry-out (permalink blogname entry)
-              out-file (clj-io/file out-dir (str (:date entry) "-" (:raw-title entry) ".html"))]
-            (do
-                (with-open [out-writer (clj-io/writer out-file)]
-                    (loop [out-writer out-writer
-                           entry-out entry-out]
-                        (clj-io/copy (first entry-out) out-writer)
-                            (if (not (empty? (rest entry-out)))
-                                (recur out-writer (rest entry-out)))))
-                (if (not (empty? (rest entries)))
-                    (recur (rest entries)))))))
+    (let [out-file (clj-io/file out-dir "index.html")]
+        (write-output out-file (templates/main blogname entries))))
+
+(defn write-posts [out-dir entries blogname]
+    "write all posts out; see -write-index-posts and -write-permalink-posts"
+    (write-index-posts out-dir entries blogname)
+    (write-permalink-posts out-dir entries blogname))
