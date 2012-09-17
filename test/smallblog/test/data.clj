@@ -1,7 +1,6 @@
 (ns smallblog.test.data
     (:use [smallblog.config]
-          [clojure.test]
-          [clj-time.core :only (now date-time from-time-zone time-zone-for-offset after?)])
+          [clojure.test])
     (:require [smallblog.data :as data])
     (:import [java.io File FileNotFoundException]))
 

@@ -1,8 +1,7 @@
 (ns smallblog.test.templates
     (:use		[smallblog.templates]
         [clojure.test]
-        [clojure.string :only (join)]
-        [clj-time.core :only (now date-time)]))
+        [clojure.string :only (join)]))
 
 (deftest test-markdownify
          (let [reqcontent (str "some markdown content *italic* **bold**")

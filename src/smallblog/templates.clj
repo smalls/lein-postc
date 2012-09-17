@@ -1,18 +1,13 @@
 (ns smallblog.templates
     (:use [clojure.string :only (join)]
           [smallblog.config])
-    (:require [net.cgrand.enlive-html :as html]
-              [clj-time.core :as clj-time]
-              [clj-time.format :as clj-time-format]
-              [clj-time.coerce :as clj-time-coerce])
+    (:require [net.cgrand.enlive-html :as html])
     (:import [org.mozilla.javascript Context ScriptableObject]))
 
 (def image-full "full")
 (def image-blog "blog")
 (def image-thumb "thumb")
 
-
-(def date-output-format (clj-time-format/formatter "dd MMM yyyy"))
 
 (defn markdownify [post]
     (let [cx (Context/enter)
@@ -30,16 +25,21 @@
                 (Context/toString result))
             (finally (Context/exit)))))
 
-(defn -main-div-post [ctx]
-    (html/clone-for [item (:posts ctx)]
-                    [:.posttitle] (html/content (:title item))
-                    [:.postdate] (html/content
-                                     (clj-time-format/unparse
-                                         date-output-format
-                                         (clj-time-coerce/from-date (:created_date item))))
-                    [:.postbody] (html/html-content (:converted_content item))
-                    [:.permalink] (html/set-attr :href (:XXX-permalink-url ctx))
-                    [:.permalink] (html/content (:XXX-permalink-url ctx))))
+(defn -main-div-post [blogname entries]
+    (html/clone-for [entry entries]
+                    [:.posttitle] (html/content (:fmt-title entry))
+                    [:.postdate] (html/content (:date entry))
+                    [:.postbody] (html/html-content (:fmt-text entry))
+                    [:.permalink] (html/set-attr :href (:permalink entry))
+                    [:.permalink] (html/content (:permalink entry))))
+
+
+(html/deftemplate permalink "smallblog/templates/main.html"
+                  [blogname entry]
+                  [:p#blogname] (html/content blogname)
+                  [:head :title] (html/content blogname)
+                  [:div.post] (-main-div-post blogname [entry])
+                  [:div.pager] nil)
 
 (defn -is-first-page? [page pagination total-posts]
     (= 0 page))

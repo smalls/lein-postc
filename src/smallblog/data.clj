@@ -2,8 +2,7 @@
     (:use [smallblog.templates :only (markdownify image-full image-blog image-thumb)]
           [smallblog.config]
           [clojure.string :only (split)])
-    (:require [clojure.string :as str]
-              [clj-time.format :as clj-time-format])
+    (:require [clojure.string :as str])
     (:import [java.util Calendar]
              [java.io File ByteArrayInputStream ByteArrayOutputStream FileInputStream]
              [javax.imageio ImageIO]
