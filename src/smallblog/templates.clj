@@ -37,7 +37,7 @@
 (html/deftemplate permalink "smallblog/templates/main.html"
                   [blogname entry]
                   [:p#blogname] (html/content blogname)
-                  [:head :title] (html/content blogname)
+                  [:head :title] (html/content (str (:fmt-title entry) " - " blogname))
                   [:div.post] (-main-div-post blogname [entry])
                   [:div.pager] nil)
 

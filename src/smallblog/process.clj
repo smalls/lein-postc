@@ -3,8 +3,6 @@
     (:require [clojure.java.io :as clj-io])
     (:import [java.io File FileInputStream StringWriter]))
 
-(def blogname "XXXTBD")
-
 (defn -read-file [file]
     (if (not (.exists file)) (throw (Exception. (str "missing:" file))))
     (if (not (.isFile file)) (throw (Exception. (str "not a file:" file))))
@@ -51,7 +49,7 @@
         (if (not (.isDirectory dir)) (throw (Exception. (str "not a directory:" dir))))
         (map -markdownify-file files)))
 
-(defn -write-permalink-posts [out-dir entries]
+(defn -write-permalink-posts [out-dir entries blogname]
     "write a list of markdownified entries out to the specified out-dir for permalinks"
     (.mkdir out-dir)
     (loop [entries entries]

@@ -19,12 +19,15 @@
          "test writing permalink posts"
          (let [entries [(-format-entry "2012-02-03" "foo-bar-baz" "<p>something great</p>")]
                out-dir (clj-io/file "test/smallblog/test/output/test-write-permalink-posts")
-               expected-post (clj-io/file "test/smallblog/test/output/test-write-permalink-posts/2012-02-03-foo-bar-baz.html")]
+               expected-post (clj-io/file "test/smallblog/test/output/test-write-permalink-posts/2012-02-03-foo-bar-baz.html")
+               blogname "-_-NAME-_-"]
              (clj-io/delete-file expected-post :silently true)
              (clj-io/delete-file out-dir :silently true)
-             (-write-permalink-posts out-dir entries)
+             (-write-permalink-posts out-dir entries blogname)
              (is (.exists expected-post))
              (with-open [sw (StringWriter.)]
                  (clj-io/copy expected-post sw)
                  (is (<= 0 (.indexOf (.toString sw) (:fmt-text (first entries))))
-                     (str "should have been found, not " (.toString sw))))))
+                     (str (:fmt-text (first entries)) "should have been found, but wasn't in:\n" (.toString sw)))
+                 (is (<= 0 (.indexOf (.toString sw) blogname))
+                     (str blogname "should have been found, but wasn't in:\n" (.toString sw))))))
