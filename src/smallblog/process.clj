@@ -80,6 +80,7 @@
     (write-permalink-posts out-dir entries blogname))
 
 (defn process
-    "read post source files, process them, and write them to the output directory"
-    [in-dir out-dir blogname]
-    (-write-posts (-markdownify-dir in-dir) out-dir blogname))
+    "read post source files, process them, and write them to the output directory. returns nil."
+    [in-dirs out-dir blogname]
+    (doseq [in-dir in-dirs]
+        (-write-posts (-markdownify-dir in-dir) out-dir blogname)))
