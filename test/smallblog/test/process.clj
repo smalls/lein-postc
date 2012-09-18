@@ -23,8 +23,8 @@
                         (-format-entry "2012-02-04" "mediocre" "something pretty <i>mediocre</i>")]
                out-dir (.getAbsoluteFile (clj-io/file "test/smallblog/test/output/test-write-posts"))
                expected-index (clj-io/file "test/smallblog/test/output/test-write-posts/index.html")
-               expected-post (clj-io/file "test/smallblog/test/output/test-write-posts/posts/2012-02-03-foo-bar-baz.html")
-               expected-post-other (clj-io/file "test/smallblog/test/output/test-write-posts/posts/2012-02-04-mediocre.html")
+               expected-post (clj-io/file "test/smallblog/test/output/test-write-posts/p/2012-02-03-foo-bar-baz.html")
+               expected-post-other (clj-io/file "test/smallblog/test/output/test-write-posts/p/2012-02-04-mediocre.html")
                blogname "-_-NAME-_-"]
              (clj-io/delete-file expected-post :silently true)
              (clj-io/delete-file expected-post-other :silently true)
