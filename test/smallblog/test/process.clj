@@ -52,3 +52,55 @@
                      (str (:fmt-text (first entries)) "should have been found, but wasn't in:\n" (.toString sw)))
                  (is (<= 0 (.indexOf (.toString sw) blogname))
                      (str blogname "should have been found, but wasn't in:\n" (.toString sw))))))
+
+(defn delete-file-recursively
+    "Delete file f. If it's a directory, recursively delete all its contents.
+    Raise an exception if any deletion fails unless silently is true.
+    Shamelessly copied from
+    https://github.com/richhickey/clojure-contrib/blob/a1c66df5287776b4397cf3929a5f498fbb34ea32/src/main/clojure/clojure/contrib/java_utils.clj#L185
+    since it doesn't appear to exist in libraries anymore."
+    [f & [silently]]
+    (let [f (clj-io/file f)]
+        (if (.isDirectory f)
+            (doseq [child (.listFiles f)]
+                (delete-file-recursively child silently)))
+        (clj-io/delete-file f silently)))
+               
+(deftest test-files-to-copy
+         (let [in-dir (.getAbsoluteFile (clj-io/file "test/smallblog/test/data/files-to-copy-1"))
+               out-dir (clj-io/file "/tmp")
+               files (files-to-copy [in-dir] out-dir)
+               in-files (map #(:in-file %) files)
+               out-files (map #(:out-file %) files)]
+             (is (= 2 (count files)))
+             (is (= (first in-files) (clj-io/file in-dir "hi.js")))
+             (is (= (first out-files) (clj-io/file out-dir "hi.js")))
+             (is (= (last in-files) (clj-io/file in-dir "nested" "bye.js")))
+             (is (= (last out-files) (clj-io/file out-dir "nested" "bye.js")))))
+
+(deftest test-process-static
+         (let [in-dirs [(clj-io/file "test/smallblog/test/data/static-dir-1")
+                        (clj-io/file "test/smallblog/test/data/static-dir-2")]
+               out-dir (clj-io/file "test/smallblog/test/output/test-write-static")
+               expected-file-1 (clj-io/file out-dir "bar.js")
+               expected-js-dir (clj-io/file out-dir "js")
+               expected-file-2 (clj-io/file expected-js-dir "baz.js")
+               expected-file-3 (clj-io/file expected-js-dir "foo.js")]
+
+             (delete-file-recursively out-dir :silently true)
+
+             (process-static in-dirs out-dir)
+
+             (is (.exists expected-file-1))
+             (is (.exists expected-file-2))
+             (is (.exists expected-file-3))))
+
+(deftest test-process-static-conflict
+         (let [in-dirs [(clj-io/file "test/smallblog/test/data/static-dir-1")
+                        (clj-io/file "test/smallblog/test/data/static-dir-2")
+                        (clj-io/file "test/smallblog/test/data/static-dir-conflict")]
+               out-dir (.getAbsoluteFile (clj-io/file "test/smallblog/test/output/test-write-static-conflict"))]
+
+             (delete-file-recursively out-dir :silently true)
+
+             (is (thrown? Exception (process-static in-dirs out-dir)))))
