@@ -123,7 +123,15 @@
                         files
                         (recur (rest in-dirs)
                                (concat files (recurse-dir (first in-dirs) out-dir)))))]
-        ; XXX fail if we have many fo the same
+        (loop [files f-t-c
+               touched {}]
+            (if (not (empty? files))
+                (let [f (first files)]
+                    (if (contains? touched (:out-file f))
+                        (throw (Exception. (str "duplicate entries from "
+                                                (:in-file f) " and "
+                                                (get touched (:out-file f)))))
+                        (recur (rest files) (assoc touched (:out-file f) (:in-file f)))))))
         f-t-c))
 
 (defn process-static

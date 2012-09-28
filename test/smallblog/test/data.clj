@@ -1,8 +1,8 @@
 (ns smallblog.test.data
     (:use [smallblog.config]
           [clojure.test])
-    (:require [smallblog.data :as data])
-    (:import [java.io File FileNotFoundException]))
+    (:require [smallblog.data :as data]
+              [clojure.java.io :as clj-io]))
 
 (deftest test-get-content-type []
          (is (= ["image/jpeg" "jpeg"] (data/get-content-type "image/jpeg")))
@@ -34,6 +34,6 @@
              (do
                  (println "warning: this contacts s3 and is costing money")
                  (try
-                     (let [path (File. "test/smallblog/test/data/IMG_0568.jpg")]
+                     (let [path (clj-io/file "test/smallblog/test/data/IMG_0568.jpg")]
                          (is (.exists path))
                          (is (not "this part was at the wrong level; needs to call s3 directly")))))))
