@@ -43,7 +43,9 @@
                  (is (<= 0 (.indexOf (.toString sw) (:fmt-text (last entries))))
                      (str (:fmt-text (last entries)) "should have been found, but wasn't in:\n" (.toString sw)))
                  (is (<= 0 (.indexOf (.toString sw) blogname))
-                     (str blogname "should have been found, but wasn't in:\n" (.toString sw))))
+                     (str blogname "should have been found, but wasn't in:\n" (.toString sw)))
+                 (is (<= 0 (.indexOf (.toString sw) "href=\"static/"))
+                     (str "href=\"static should have been found, but wasn't in:\n" (.toString sw))))
 
              ; test permalink post
              (with-open [sw (StringWriter.)]
@@ -51,7 +53,9 @@
                  (is (<= 0 (.indexOf (.toString sw) (:fmt-text (first entries))))
                      (str (:fmt-text (first entries)) "should have been found, but wasn't in:\n" (.toString sw)))
                  (is (<= 0 (.indexOf (.toString sw) blogname))
-                     (str blogname "should have been found, but wasn't in:\n" (.toString sw))))))
+                     (str blogname "should have been found, but wasn't in:\n" (.toString sw)))
+                 (is (<= 0 (.indexOf (.toString sw) "href=\"../static/"))
+                     (str "href=\"../static should have been found, but wasn't in:\n" (.toString sw))))))
 
 (defn delete-file-recursively
     "Delete file f. If it's a directory, recursively delete all its contents.
