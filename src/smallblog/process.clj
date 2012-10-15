@@ -125,14 +125,18 @@
             (if (empty? in-resources)
                 out-resources
                 (recur (rest in-resources)
-                       (conj out-resources {:in-file (first in-resources)
-                                            :out-file (clj-io/file out-dir
-                                                                   (first in-resources))}))))))
+                       (let [in-resource (first in-resources)]
+                           (println "in-resource" in-resource)
+                           (println "in-resource as resource"
+                                    (clj-io/resource in-resource))
+                       (conj out-resources {:in-file (clj-io/resource in-resource)
+                                            :out-file (clj-io/file
+                                                          out-dir in-resource)})))))))
 
 (defn files-to-copy
     "Returns a list of maps with :in-file :out-file keys populated.
-    Also, as a side effect, creates all necassary directories in out-dir.
-    And will throw an exception if there's a conflict between two source files
+    :in-file may be a URL or a File. :out-file will be a File.
+    Will throw an exception if there's a conflict between two source files
     with the same target."
     [static-dirs out-dir]
     (let [f-t-c (concat
@@ -164,5 +168,6 @@
                       parent (.getParentFile (:out-file f))]
                     (if (not (.exists parent))
                         (.mkdirs parent))
-                    (clj-io/copy (:in-file f) (:out-file f))
+                    (with-open [input (clj-io/input-stream (:in-file f))]
+                        (clj-io/copy input (:out-file f)))
                     (recur (rest files)))))))
