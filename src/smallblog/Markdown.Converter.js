@@ -1,1 +1,1 @@
-../public/js/pagedown/Markdown.Converter.js
+../static/js/pagedown/Markdown.Converter.js

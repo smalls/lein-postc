@@ -10,9 +10,6 @@
     [project & keys]
     (let [src-dirs (map #(clj-io/file % "posts") (:source-paths project))
           static-dirs (map #(clj-io/file % "static") (:source-paths project))
-          static-dirs (concat
-                          (list (.getAbsoluteFile (clj-io/file "smallblog/resource")))
-                          static-dirs)
           target-path (clj-io/file (:target-path project))
           out-dir (clj-io/file target-path "web")]
         (if (not (.exists target-path))

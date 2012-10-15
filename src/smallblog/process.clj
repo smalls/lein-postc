@@ -1,7 +1,10 @@
 (ns smallblog.process
     (:require [clojure.java.io :as clj-io]
+              [clojure.string :as clj-str]
               [smallblog.templates :as templates])
-    (:import [java.io File FileInputStream StringWriter]))
+    (:import [java.io File FileInputStream StringWriter]
+             [org.reflections Reflections]
+             [org.reflections.scanners Scanner ResourcesScanner]))
 
 (defn- ^String -read-file [file]
     (if (not (.exists file)) (throw (Exception. (str "missing:" file))))
@@ -110,6 +113,21 @@
                      new-list
                      (recurse-dir (rest files) out-dir new-list)))))))
 
+(defn- recurse-cp
+    "recurse over classpath resources in the given path"
+    [resource-root out-dir]
+    (let [cp-resource-root (clj-str/replace resource-root #"/" ".")
+          scanner (ResourcesScanner.) 
+          reflections (Reflections. (into-array Object [cp-resource-root scanner]))
+          resources (.getResources reflections #".*")]
+        (loop [in-resources resources
+               out-resources []]
+            (if (empty? in-resources)
+                out-resources
+                (recur (rest in-resources)
+                       (conj out-resources {:in-file (first in-resources)
+                                            :out-file (clj-io/file out-dir
+                                                                   (first in-resources))}))))))
 
 (defn files-to-copy
     "Returns a list of maps with :in-file :out-file keys populated.
@@ -117,12 +135,14 @@
     And will throw an exception if there's a conflict between two source files
     with the same target."
     [static-dirs out-dir]
-    (let [f-t-c (loop [in-dirs static-dirs
-                       files []]
-                    (if (empty? in-dirs)
-                        files
-                        (recur (rest in-dirs)
-                               (concat files (recurse-dir (first in-dirs) out-dir)))))]
+    (let [f-t-c (concat
+                    (recurse-cp "static" out-dir)
+                    (loop [in-dirs static-dirs
+                           files []]
+                        (if (empty? in-dirs)
+                            files
+                            (recur (rest in-dirs)
+                                   (concat files (recurse-dir (first in-dirs) out-dir))))))]
         (loop [files f-t-c
                touched {}]
             (if (not (empty? files))

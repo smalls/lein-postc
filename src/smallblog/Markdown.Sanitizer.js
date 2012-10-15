@@ -1,1 +1,1 @@
-../public/js/pagedown/Markdown.Sanitizer.js
+../static/js/pagedown/Markdown.Sanitizer.js

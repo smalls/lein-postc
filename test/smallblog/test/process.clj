@@ -69,14 +69,17 @@
 (deftest test-files-to-copy
          (let [in-dir (.getAbsoluteFile (clj-io/file "test/smallblog/test/data/files-to-copy-1"))
                out-dir (clj-io/file "/tmp")
+               cp-only-files (files-to-copy [] out-dir)
                files (files-to-copy [in-dir] out-dir)
                in-files (map #(:in-file %) files)
                out-files (map #(:out-file %) files)]
-             (is (= 2 (count files)))
-             (is (= (first in-files) (clj-io/file in-dir "hi.js")))
-             (is (= (first out-files) (clj-io/file out-dir "hi.js")))
-             (is (= (last in-files) (clj-io/file in-dir "nested" "bye.js")))
-             (is (= (last out-files) (clj-io/file out-dir "nested" "bye.js")))))
+             (is (=
+                     (+ 2 (count cp-only-files))
+                     (count files)))
+             (is (some #(= % (clj-io/file in-dir "hi.js")) in-files))
+             (is (some #(= % (clj-io/file out-dir "hi.js")) out-files))
+             (is (some #(= % (clj-io/file in-dir "nested" "bye.js")) in-files))
+             (is (some #(= % (clj-io/file out-dir "nested" "bye.js")) out-files))))
 
 (deftest test-process-static
          (let [in-dirs [(clj-io/file "test/smallblog/test/data/static-dir-1")
