@@ -4,7 +4,9 @@
               [smallblog.templates :as templates])
     (:import [java.io File FileInputStream StringWriter]
              [org.reflections Reflections]
-             [org.reflections.scanners Scanner ResourcesScanner]))
+             [org.reflections.scanners Scanner ResourcesScanner]
+             [org.reflections.util ConfigurationBuilder ClasspathHelper]
+             [smallblog SmallblogMarker]))
 
 (defn- ^String -read-file [file]
     (if (not (.exists file)) (throw (Exception. (str "missing:" file))))
@@ -117,21 +119,25 @@
     "recurse over classpath resources in the given path"
     [resource-root out-dir]
     (let [cp-resource-root (clj-str/replace resource-root #"/" ".")
-          scanner (ResourcesScanner.) 
-          reflections (Reflections. (into-array Object [cp-resource-root scanner]))
-          resources (.getResources reflections #".*")]
-        (loop [in-resources resources
+          scanner (ResourcesScanner.)
+          config-builder (ConfigurationBuilder.)
+          config-builder (.setScanners config-builder
+                                       (into-array Scanner [scanner]))
+          cp-urls [(ClasspathHelper/forClass (.getClass (SmallblogMarker.))
+                                             (into-array ClassLoader []))]
+          config-builder (.addUrls config-builder cp-urls)
+          reflections (Reflections. config-builder)
+          resources (.getResources reflections #".*")
+          matched-resources (filter #(= 0 (.indexOf % cp-resource-root)) resources)]
+        (loop [in-resources matched-resources
                out-resources []]
             (if (empty? in-resources)
                 out-resources
                 (recur (rest in-resources)
                        (let [in-resource (first in-resources)]
-                           (println "in-resource" in-resource)
-                           (println "in-resource as resource"
-                                    (clj-io/resource in-resource))
-                       (conj out-resources {:in-file (clj-io/resource in-resource)
-                                            :out-file (clj-io/file
-                                                          out-dir in-resource)})))))))
+                           (conj out-resources {:in-file (clj-io/resource in-resource)
+                                                :out-file (clj-io/file
+                                                              out-dir in-resource)})))))))
 
 (defn files-to-copy
     "Returns a list of maps with :in-file :out-file keys populated.

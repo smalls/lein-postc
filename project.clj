@@ -8,6 +8,12 @@
                              [rhino/js "1.7R2"]
                              [com.thebuzzmedia/imgscalr-lib "3.2"]
                              [net.java.dev.jets3t/jets3t "0.9.0"]
-                             [org.reflections/reflections "0.9.8"]]
+                             [org.reflections/reflections "0.9.8"]
+
+                             ; not sure why this is required, but it made
+                             ; reflections happy
+                             [javax.servlet/servlet-api "2.5"]]
             :repositories   {"The Buzz Media Maven Repository" ; imgscalr
-                             "http://maven.thebuzzmedia.com"})
+                             "http://maven.thebuzzmedia.com"}
+            
+            :java-source-paths ["src/java"])

@@ -11,9 +11,12 @@
     (let [src-dirs (map #(clj-io/file % "posts") (:source-paths project))
           static-dirs (map #(clj-io/file % "static") (:source-paths project))
           target-path (clj-io/file (:target-path project))
-          out-dir (clj-io/file target-path "web")]
+          intermediate-out-dir (clj-io/file target-path "web")
+          out-dir (clj-io/file intermediate-out-dir "static")]
         (if (not (.exists target-path))
             (.mkdir target-path))
+        (if (not (.exists intermediate-out-dir))
+            (.mkdir intermediate-out-dir))
         (doseq [src-dir src-dirs]
             (if (or (not (.exists src-dir))
                     (not (.isDirectory src-dir)))
