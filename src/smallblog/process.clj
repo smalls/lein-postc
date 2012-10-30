@@ -26,12 +26,13 @@
     "format the entry - change titles-like-this to Titles Like This,
     markdownify text, etc"
     [date title text]
-    {:date date
-     :permalink (str "p/" date "-" title ".html")
-     :raw-title title
-     :fmt-title ""
-     :raw-text text
-     :fmt-text (templates/markdownify text)})
+    (let [raw-title (clj-str/replace title #"\s" "_")]
+        {:date date
+         :permalink (str "p/" date "-" raw-title ".html")
+         :raw-title raw-title
+         :fmt-title title
+         :raw-text text
+         :fmt-text (templates/markdownify text)}))
 
 (defn -markdownify-file
     "reads file"
