@@ -7,7 +7,7 @@
              [java.io File ByteArrayInputStream ByteArrayOutputStream FileInputStream]
              [javax.imageio ImageIO]
              [java.awt.image BufferedImageOp]
-             [com.thebuzzmedia.imgscalr Scalr]
+             [org.imgscalr Scalr]
              [org.jets3t.service.security AWSCredentials]
              [org.jets3t.service.utils ServiceUtils]
              [org.jets3t.service.model S3Object]
