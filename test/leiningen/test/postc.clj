@@ -1,5 +1,5 @@
-(ns leiningen.test.genblog
-    (:use [leiningen.genblog]
+(ns leiningen.test.postc
+    (:use [leiningen.postc]
           [clojure.test])
     (:require [clojure.java.io :as clj-io]))
 

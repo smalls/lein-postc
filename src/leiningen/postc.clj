@@ -1,11 +1,11 @@
-(ns leiningen.genblog
+(ns leiningen.postc
     (:use [smallblog.process :only (process process-static)])
     (:require [clojure.java.io :as clj-io]))
 
 (defn only-dirs [fs]
     (filter #(and (.exists %) (.isDirectory %)) fs))
 
-(defn genblog
+(defn postc
     "Generate static html files from markdown-formatted posts"
     [project & keys]
     (let [src-dirs (map #(clj-io/file % "posts") (:source-paths project))
