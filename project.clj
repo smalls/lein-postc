@@ -9,7 +9,7 @@
 
             :dependencies   [[org.clojure/clojure "1.4.0"]
                              [enlive "1.0.0"]
-                             [rhino/js "1.7R2"]
+                             [org.pegdown/pegdown "1.2.0"]
                              [org.reflections/reflections "0.9.8"]
                              [javax.servlet/servlet-api "2.5"]]
             

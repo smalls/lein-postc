@@ -1,29 +1,12 @@
 (ns smallblog.templates
-    (:use [clojure.string :only (join)]
-          [smallblog.config])
+    (:use [clojure.string :only (join)])
     (:require [net.cgrand.enlive-html :as html])
-    (:import [org.mozilla.javascript Context ScriptableObject]))
-
-(def image-full "full")
-(def image-blog "blog")
-(def image-thumb "thumb")
+    (:import [org.pegdown PegDownProcessor Extensions]))
 
 
 (defn markdownify [post]
-    (let [cx (Context/enter)
-          scope (.initStandardObjects cx)
-          input (Context/javaToJS post scope)
-          script (str
-                     (html/get-resource "smallblog/Markdown.Converter.js" slurp)
-                     "window = {Markdown: {Converter: Markdown.Converter}};"
-                     (html/get-resource "smallblog/Markdown.Sanitizer.js" slurp)
-                     "san = window.Markdown.getSanitizingConverter;"
-                     "san().makeHtml(input);")]
-        (try
-            (ScriptableObject/putProperty scope "input" input)
-            (let [result (.evaluateString cx scope script "<cmd>" 1 nil)]
-                (Context/toString result))
-            (finally (Context/exit)))))
+    (let [pgp (PegDownProcessor. Extensions/SMARTYPANTS)]
+        (.markdownToHtml pgp post)))
 
 (defn -main-div-post [blogname entries]
     (html/clone-for
